@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using DurableFunctionsDemo.Models;
@@ -14,8 +16,26 @@ namespace DurableFunctionsDemo
             [DurableClient] IDurableOrchestrationClient durableOrchestrationClient,
             [Blob("input/cf-input.json", FileAccess.Read, Connection = "input-storage-connection-string")] string regionsAndDivisions)
         {
-            var inputs = await Task.FromResult(JsonConvert.DeserializeObject<SalesAggregateInput>(regionsAndDivisions));
+            IList<Task<IEnumerable<GetSalesDataOutput>>> tasks = new List<Task<IEnumerable<GetSalesDataOutput>>>();
+            
+            var inputs = JsonConvert.DeserializeObject<SalesAggregateInput>(regionsAndDivisions);
 
+            foreach (var region in inputs.Regions)
+            {
+                foreach (var division in inputs.Divisions)
+                {
+                    var input = new GetSalesDataInput
+                    {
+                        Division = division,
+                        Region = region
+                    };
+                    
+                    tasks.Add(context.CallActivityAsync<IEnumerable<GetSalesDataOutput>>("GetSalesData", input));        
+                }
+            }
+            
+            var results = await Task.WhenAll(tasks);
+            
             return inputs;
         }
     }
