@@ -16,7 +16,7 @@ namespace DurableFunctionsDemo
         [FunctionName("GetSalesData")]
         public static async Task<IEnumerable<GetSalesDataOutput>> Run([ActivityTrigger] GetSalesDataInput input)
         {
-            var output = new List<GetSalesDataOutput>();
+            IEnumerable<GetSalesDataOutput> output = null;
             
             var connectionString = Environment.GetEnvironmentVariable("sales-history-sql-connection-string");
             
