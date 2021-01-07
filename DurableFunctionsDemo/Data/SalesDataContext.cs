@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using DurableFunctionsDemo.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DurableFunctionsDemo.Data
 {
-    public class SalesDataContext
+    public class SalesDataContext : DbContext
     {
+        public SalesDataContext(DbContextOptions<SalesDataContext> options) : base(options)
+        {
+        }
+        
+        public DbSet<SalesDataItem> SalesData { get; set; }
     }
 }
