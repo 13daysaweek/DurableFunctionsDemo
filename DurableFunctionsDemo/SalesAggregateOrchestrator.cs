@@ -1,15 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DurableFunctionsDemo.Models;
-using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 
 namespace DurableFunctionsDemo
@@ -25,7 +22,7 @@ namespace DurableFunctionsDemo
             IList<Task<IEnumerable<GetSalesDataOutput>>> tasks = new List<Task<IEnumerable<GetSalesDataOutput>>>();
             
             var inputs = JsonConvert.DeserializeObject<SalesAggregateInput>(regionsAndDivisions);
-
+            
             foreach (var region in inputs.Regions)
             {
                 foreach (var division in inputs.Divisions)
@@ -35,8 +32,8 @@ namespace DurableFunctionsDemo
                         Division = division,
                         Region = region
                     };
-                    
-                    tasks.Add(context.CallActivityAsync<IEnumerable<GetSalesDataOutput>>("GetSalesData", input));        
+
+                    tasks.Add(context.CallActivityAsync<IEnumerable<GetSalesDataOutput>>("GetSalesData", input));
                 }
             }
             
