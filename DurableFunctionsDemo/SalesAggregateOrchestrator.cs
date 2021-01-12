@@ -1,28 +1,26 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using DurableFunctionsDemo.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Newtonsoft.Json;
 
 namespace DurableFunctionsDemo
 {
     public static class SalesAggregateOrchestrator
     {
         [FunctionName("SalesAggregateOrchestrator")]
-        public static async Task<SalesAggregateInput> RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context, 
-            [DurableClient] IDurableOrchestrationClient durableOrchestrationClient,
-            [Blob("input/cf-input.json", FileAccess.Read, Connection = "input-storage-connection-string")] string regionsAndDivisions)
+        public static async Task RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context, 
+            [DurableClient] IDurableOrchestrationClient durableOrchestrationClient)
         {
-            IList<Task<IEnumerable<GetSalesDataOutput>>> tasks = new List<Task<IEnumerable<GetSalesDataOutput>>>();
+            var regionsAndDivisions = await context.CallActivityAsync<SalesAggregateInput>("GetRegionsAndDivisions", null);
             
-            var inputs = JsonConvert.DeserializeObject<SalesAggregateInput>(regionsAndDivisions);
-
-            foreach (var region in inputs.Regions)
+            var getDataTasks = new List<Task<IEnumerable<GetSalesDataOutput>>>();
+                
+            foreach (var region in regionsAndDivisions.Regions)
             {
-                foreach (var division in inputs.Divisions)
+                foreach (var division in regionsAndDivisions.Divisions)
                 {
                     var input = new GetSalesDataInput
                     {
@@ -30,13 +28,33 @@ namespace DurableFunctionsDemo
                         Region = region
                     };
                     
-                    tasks.Add(context.CallActivityAsync<IEnumerable<GetSalesDataOutput>>("GetSalesData", input));        
+                    getDataTasks.Add(context.CallActivityAsync<IEnumerable<GetSalesDataOutput>>("GetSalesData", input));
                 }
             }
+
+            var getSalesDataResults = await Task.WhenAll(getDataTasks);
+
+            // return data (i.e. no data found in db to match criteria).  Filter out null elements and flatten to just IEnumerable<T> with SelectMany
+            var salesData = getSalesDataResults.Where(element => element != null)
+                .SelectMany(element => element);
+            var processDataTasks = new List<Task>();
+            var runId = $"{DateTime.UtcNow:MMddyyyy-HHmmss}";
             
-            var results = await Task.WhenAll(tasks);
-            
-            return inputs;
+            foreach (var customer in salesData)
+            {
+                var processDataInput = new ProcessDataInput
+                {
+                    CustomerId = customer.CustomerId,
+                    Division = customer.Division,
+                    MonthlySalesTotal = customer.MonthlySalesTotal,
+                    Region = customer.Region,
+                    RunIdentifier = runId
+                };
+                
+                processDataTasks.Add(context.CallActivityAsync("ProcessData", processDataInput));
+            }
+
+            await Task.WhenAll(processDataTasks);
         }
     }
 }

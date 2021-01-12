@@ -15,5 +15,7 @@ namespace DurableFunctionsDemo.Data
         }
 
         public DbSet<SalesDataItem> SalesData { get; set; }
+        
+        public DbSet<SalesAnomaly> SalesAnomalies { get; set; }
     }
 }
