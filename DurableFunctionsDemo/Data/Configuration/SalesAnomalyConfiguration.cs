@@ -23,7 +23,7 @@ namespace DurableFunctionsDemo.Data.Configuration
             builder.Property(table => table.CustomerId)
                 .IsRequired();
 
-            builder.Property(table => table.AnomalyCaclulationResult)
+            builder.Property(table => table.AnomalyCalculationResult)
                 .HasColumnType("decimal(18,4)")
                 .IsRequired();
         }

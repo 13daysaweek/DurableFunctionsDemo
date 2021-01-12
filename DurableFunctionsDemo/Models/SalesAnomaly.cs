@@ -16,6 +16,6 @@ namespace DurableFunctionsDemo.Models
 
         public Guid CustomerId { get; set; }
 
-        public decimal AnomalyCaclulationResult { get; set; }
+        public decimal AnomalyCalculationResult { get; set; }
     }
 }

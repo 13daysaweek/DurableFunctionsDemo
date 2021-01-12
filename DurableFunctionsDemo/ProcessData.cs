@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DurableFunctionsDemo.Data;
 using DurableFunctionsDemo.Models;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ namespace DurableFunctionsDemo
 {
     public static class ProcessData
     {
+        [FunctionName("ProcessData")]
         public static async Task Run([ActivityTrigger] ProcessDataInput input)
         {
             var rng = new Random();
@@ -18,7 +20,7 @@ namespace DurableFunctionsDemo
 
             var anomaly = new SalesAnomaly
             {
-                AnomalyCaclulationResult = randomResult,
+                AnomalyCalculationResult = randomResult,
                 CustomerId = input.CustomerId,
                 Division = input.Division,
                 Region = input.Region,
