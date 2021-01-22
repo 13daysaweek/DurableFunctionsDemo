@@ -1,0 +1,49 @@
+@startuml Function Flow
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/Azure-PlantUML/release/2-1/dist/AzureCommon.puml
+!define AzurePuml https://raw.githubusercontent.com/RicardoNiepel/Azure-PlantUML/release/2-1/dist
+!includeurl AzurePuml/AzureCommon.puml
+!includeurl AzurePuml/Databases/all.puml
+!includeurl AzurePuml/Compute/AzureFunction.puml
+!includeurl AzurePuml/Storage/AzureBlobStorage.puml
+!includeurl AzurePuml/Storage/AzureStorage.puml
+
+AzureFunction(starterFunction, "Starter", "HTTP", "Starts Orchestration")
+AzureFunction(orchestrator, "Orchestrator", "OrchestrationTrigger", "Orchestrates Activity Functions")
+AzureFunction(getRegionsAndDivisions, "GetRegionsAndDivisions", "Activity", "Get Regions and Divisions from JSON blob")
+AzureSqlDatabase(salesDatabase, "Sales History DB", "Azure SQL", "Sales history and final results")
+AzureBlobStorage(regionsAndDivisionsJson, "Region and Divisions", "JSON file")
+
+package "step 1" {
+  AzureFunction(getSalesData1, "GetSalesData", "Activity", "Get Sales Data Region/Division 1")
+  AzureFunction(getSalesData2, "GetSalesData", "Activity", "Get Sales Data Region/Division 2")
+  AzureFunction(getSalesDataN, "GetSalesData", "Activity", "Get Sales Data Region/Division N")
+}
+
+package "step 2" {
+  AzureFunction(processDataCustomer1, "ProcessData", "Activity", "Process Data Customer 1")
+  AzureFunction(processDataCustomer2, "ProcessData", "Activity", "Process Data Customer 2")
+  AzureFunction(processDataCustomerN, "ProcessData", "Activity", "Process Data Customer N")
+}
+
+AzureStorage(processDataResults, "ProcessDataResults", "Table Storage", "Stores results from ProcessData for each run")
+
+package "Step 3" {
+  AzureFunction(saveData, "SaveData", "Save data for current run, from table storage to SQL DB")
+}
+starterFunction --> orchestrator
+orchestrator --> getRegionsAndDivisions
+getRegionsAndDivisions --> regionsAndDivisionsJson
+orchestrator --> getSalesData1
+orchestrator --> getSalesData2
+orchestrator --> getSalesDataN
+orchestrator --> processDataCustomer1
+orchestrator --> processDataCustomer2
+orchestrator --> processDataCustomerN
+processDataCustomer1 --> processDataResults
+processDataCustomer2 --> processDataResults
+processDataCustomerN --> processDataResults
+orchestrator --> saveData
+processDataResults --> saveData
+saveData --> salesDatabase
+
+@enduml
