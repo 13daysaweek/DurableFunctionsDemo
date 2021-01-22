@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DurableFunctionsDemo.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Extensions.Logging;
 
 namespace DurableFunctionsDemo
 {
@@ -12,7 +13,8 @@ namespace DurableFunctionsDemo
     {
         [FunctionName("SalesAggregateOrchestrator")]
         public static async Task RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context, 
-            [DurableClient] IDurableOrchestrationClient durableOrchestrationClient)
+            [DurableClient] IDurableOrchestrationClient durableOrchestrationClient,
+            ILogger logger)
         {
             var regionsAndDivisions = await context.CallActivityAsync<SalesAggregateInput>("GetRegionsAndDivisions", null);
             
@@ -55,6 +57,9 @@ namespace DurableFunctionsDemo
             }
 
             await Task.WhenAll(processDataTasks);
+
+            logger.LogInformation($"Calling SaveData function with run identifier {runId}");
+            await context.CallActivityAsync("SaveData", runId);
         }
     }
 }

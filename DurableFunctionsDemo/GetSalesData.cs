@@ -21,7 +21,9 @@ namespace DurableFunctionsDemo
             var connectionString = Environment.GetEnvironmentVariable("sales-history-sql-connection-string");
             
             var optionsBuilder = new DbContextOptionsBuilder<SalesDataContext>();
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseSqlServer(connectionString,
+                options => options.EnableRetryOnFailure());
+            
 
             IList<SalesDataItem> materializedData = null;
             
