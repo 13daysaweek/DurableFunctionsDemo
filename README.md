@@ -13,3 +13,6 @@ Before running this project, create a `local.settings.json` file in the project 
 | FUNCTIONS_WORKER_RUNTIME            | Set this value to `dotnet` as this is a .Net Core Function App |
 | sales-history-sql-connection-string | A SQL connection string pointing to the database created above.  Note this connection string should use the database credentials created above. |
 | input-storage-connection-string     | Connection string to a storage account that will be used by the Function to read the input blob containing regions and divisions |
+
+## Function Flow
+![Function Flow](out/function-flow/Function%20Flow.png)
