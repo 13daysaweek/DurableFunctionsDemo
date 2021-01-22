@@ -36,6 +36,9 @@ getRegionsAndDivisions --> regionsAndDivisionsJson
 orchestrator --> getSalesData1
 orchestrator --> getSalesData2
 orchestrator --> getSalesDataN
+getSalesData1 --> salesDatabase
+getSalesData2 --> salesDatabase
+getSalesDataN --> salesDatabase
 orchestrator --> processDataCustomer1
 orchestrator --> processDataCustomer2
 orchestrator --> processDataCustomerN
